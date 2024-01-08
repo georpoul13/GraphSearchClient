@@ -1,92 +1,87 @@
 package graphSearch;
+import java.util.HashSet;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 import graphClient.XGraphClient;
 
 public class GraphSearch {
-
-	public int afm = 11111; // AFM should be in form 5XXXX
-	public String firstname = "John";
-	public String lastname = "Doe";
-
+	
+	public int afm = 58731; 
+	public String firstname = "GEORGIOS";
+	public String lastname = "POULIOS";
+	static public int flag = 0;
 	XGraphClient xgraph;
 
+	static HashSet edges = new HashSet<SEdge>();
+	public static int edgeCounter(SEdge a){
+
+		if(!edges.contains(a)){
+			edges.add(a);
+			flag++;
+			return 1;
+		}
+		return 0;
+	}
+	public static int maxOfList(List a){
+		int max = 0;
+
+
+		return max;
+	}
+	
+	
 	public GraphSearch(XGraphClient xgraph) {
 		this.xgraph = xgraph;
 	}
 
 
 	public Result findResults() {
-		Result res = null;
-
-		// ////////////////////
-		// WRITE YOUR OWN CODE
-		// ////////////////////
-
-		// EXAMPLE CODE
-
-		// Example of creating the Result object
-		res = new Result();
-
-		// Retrieve the number of clusters (parameter k of maximum spacing clustering)
-		// int numOfClusters = xgraph.getNumOfClusters();
-
-		// Retrieve the first node of the unknown graph
-		long firstNode = xgraph.firstNode();
-
-		// Print the ID of the first node
-		System.out.println("The id of the first node is: " + firstNode);
-
-		// Inform that GraphSearch starts
-		System.out.println("Graph search from node : " + firstNode);
-
-		// Retrieve the neighbors of the first node
-		// The neighbors are given in NO particular order.
-		long[] neighbors = xgraph.getNeighborsOf(firstNode);
-
-		// Convert long[] to ArrayList<Long>
-//		Long[] a = new Long[10];
-//		Arrays.fill(a, 123L);
-//		ArrayList<Long> n = new ArrayList<Long>(Arrays.asList(a));
-//
-//		long[] input = new long[]{1,2,3,4};
-//		List<Long> output = new ArrayList<Long>();
-//		for (long value : input) {
-//		    output.add(value);
-//		}
-//
-		// Print all the neighbors of the firstNode
-		// Approach A
-		int numOfNeighbors = neighbors.length;
-
-		for (int i = 0; i < numOfNeighbors; i++) {
-			System.out.println("Neighbor " + i + ", id: " + neighbors[i]);
+		LinkedList discovered = new LinkedList<>();
+		long Node = xgraph.firstNode();
+		SGraph gSGraph = new SGraph();
+		Queue<Long> q = new LinkedList<>();
+		long w = 0;
+		long[] neighbors = xgraph.getNeighborsOf(Node);
+		for(int l = 0;l<neighbors.length;l++){
+			q.add(neighbors[l]);
+			gSGraph.addEdge(new SEdge(Node,neighbors[l],xgraph.getEdgeWeight(Node, neighbors[l])));
 		}
+		SEdge heaviestEdge = new SEdge(Node,neighbors[0]);
+		int st;
+		while(q.size()>0){
+			Node = q.remove();
+			neighbors = xgraph.getNeighborsOf(Node);
+				for(int i = 0;i<neighbors.length;i++){
+					if(discovered.contains(neighbors[i])) continue;
 
-		// newline
-		System.out.println();
+					st = edgeCounter(new SEdge(Node, neighbors[i]));
+					if(st==1) gSGraph.addEdge(new SEdge(Node,neighbors[i],xgraph.getEdgeWeight(Node, neighbors[i])));
+					q.add(neighbors[i]);
+					
+					if(xgraph.getEdgeWeight(Node, neighbors[i])>w) {
+						heaviestEdge.nodeOne = Node;
+						heaviestEdge.nodeTwo = neighbors[i];
+						heaviestEdge.weight = xgraph.getEdgeWeight(Node, neighbors[i]);
+						w = xgraph.getEdgeWeight(Node, neighbors[i]);
+					}
 
-		// Print all the neighbors of the firstNode
-		// Approach B
-		for (long id : neighbors) {
-			System.out.println("Neighbor id: " + id);
+				}
+				if(!discovered.contains(Node)){
+				discovered.addLast(Node);
+	
+				}
+				
 		}
-
-		// WRITE ALL RESULTS INTO THE RESULT OBJECT
-
-		// COMPULSORY questions
-		// res.n = (Number of nodes, type: int)
-		// res.m =  (Number of edges, type: int)
-		// res.degreeArrayList = (Degrees in decreasing order, ArrayList<Integer>)
-
-		// BONUS
-		// res.bfsNodeSequence = ... ArrayList<Long>
-		// res.bfsTree = ... SGraph
-
-		// Return the res (Result) Object with the results of the computation
+	
+		Result res = new Result();
+		res.n = discovered.size();
+		res.m = flag;
+		
+		res.heaviestEdge = heaviestEdge;
+		res.sGraph = gSGraph;
 		return res;
 	}
 
